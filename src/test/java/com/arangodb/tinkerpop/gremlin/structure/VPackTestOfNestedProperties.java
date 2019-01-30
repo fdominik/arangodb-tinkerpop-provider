@@ -59,7 +59,7 @@ public class VPackTestOfNestedProperties {
     ageOf18Value.propertyValue._value(18);
     ageOf18Value.propertyValue._type("Integer");
     ageOf18.put("age",ageOf18Value);
-    nestedAge.add(ageOf18Value);
+    nestedAge.add(ageOf18);
 
     age.nestedProperies = nestedAge;
     mapOfProperties.put("age", age);
