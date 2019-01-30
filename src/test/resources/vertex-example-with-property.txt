@@ -1,0 +1,55 @@
+{
+	"name": {
+		"_id": "1",
+		"_value": "Dominik",
+		"_type": "java.lang.String"
+	},
+	"age": [{
+		"id": {
+			"@type": "java.lang.Integer",
+			"@value": "1"
+		},
+		"value": {
+			"@type": "java.lang.Integer",
+			"@value": "29"
+		}
+	}],
+	"age": {
+		"_id": "1",
+		"_type": "java.lang.Integer",
+		"_value": "29"
+	},
+	"address": [{
+		"_id": "1",
+		"street": {
+			"_type": "java.lang.String",
+			"_value": "Abc"
+		},
+		"city": {
+			"_type": "java.lang.String",
+			"_value": "Prague"
+		},
+		"country": [{
+			"_id": "1",
+			"code": {
+				"_type": "java.lang.String",
+				"_value": "cz"
+			}
+		},
+		{
+			"_id": "2",
+			"code": {
+				"_type": "java.lang.String",
+				"_value": "de"
+			}
+		}]
+	},
+	{
+		"_id": "2",
+		"street": {
+			"_id": "1",
+			"_type": "java.lang.String",
+			"_value": "DEF"
+		}
+	}]
+}
