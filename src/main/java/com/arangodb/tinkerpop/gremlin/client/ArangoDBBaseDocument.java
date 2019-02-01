@@ -14,6 +14,7 @@ import com.arangodb.velocypack.annotations.Expose;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
 /**
  * The ArangoDB BaseBaseDocument provides the internal fields required for the driver to correctly
  * serialize and deserialize edges.
@@ -52,10 +53,8 @@ public abstract class ArangoDBBaseDocument {
     @Expose(serialize = false, deserialize = false)
     protected ArangoDBGraph graph;
 
-    /**  Flag to indicate if the element is paired to a document in the DB. */
-
     @Expose(serialize = false, deserialize = false)
-    protected boolean paired = false;
+    protected boolean paired;
 
     /**
      * Constructor used for Arango DB JavaBeans serialisation.
@@ -108,6 +107,8 @@ public abstract class ArangoDBBaseDocument {
 
     /**
      * Set the Document's ArangoDB Key.
+     * This method is not for public use as ids must be final. It is only provided to allow the
+     * deserialization to assign the value.
      *
      * @param key the key
      */
@@ -128,7 +129,8 @@ public abstract class ArangoDBBaseDocument {
 
     /**
      * Set the Document's ArangoDB Revision.
-     *
+     * This method is not for public use as ids must be final. It is only provided to allow the
+     * deserialization to assign the value.
      * @param rev the revision
      */
 
@@ -187,7 +189,7 @@ public abstract class ArangoDBBaseDocument {
 
 
     /**
-     * Checks if the document is paired.
+     * Checks if the document is paired. A paired document has been persisted in the DB or loaded from it.
      *
      * @return true, if is paired
      */
@@ -205,5 +207,6 @@ public abstract class ArangoDBBaseDocument {
     public void setPaired(boolean paired) {
         this.paired = paired;
     }
-    
+
+
 }

@@ -23,17 +23,17 @@ public interface ArangoDBElement extends Element {
 	void save();
 
     /**
-	 *  Remove the key from the element's properties.
+	 *  Remove the key from the element's vertexProperties.
 	 *
 	 * @param property the property
 	 */
 	void removeProperty(ArangoDBElementProperty<?> property);
 
 	/**
-	 * Attach all the contained properties by setting their element/owner to this element.
+	 * Attach all the contained vertexProperties by setting their element/element to this element.
 	 * This method should be called after vertex/edge elements have been deserialized.
 	 */
-	void attachProperties();
+//	void attachProperties();
 
     /**
      * Graph.

@@ -479,7 +479,7 @@ public class ArangoDBQueryBuilder {
 	}
 	
 	/**
-	 * Add a filter on element properties segment. The filter operations are defined using a 
+	 * Add a filter on element vertexProperties segment. The filter operations are defined using a
 	 * #link {@link ArangoDBPropertyFilter}.
 	 *
 	 * @param propertyFilter		the property filter

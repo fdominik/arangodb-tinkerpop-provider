@@ -91,23 +91,25 @@ public class ArangoDBGraphClient {
         		int code = Integer.parseInt(m.group(1));
         		String msg = m.group(2);
         		switch ((int)code/100) {
-        		case 10:	// Internal ArangoDB storage errors
-        			return new ArangoDBGraphException(code, String.format("Internal ArangoDB storage error (%s): %s", code, msg), ex);
-        		case 11:
-        			return new ArangoDBGraphException(code, String.format("External ArangoDB storage error (%s): %s", code, msg), ex);
-        		case 12:
-        			return new ArangoDBGraphException(code, String.format("General ArangoDB storage error (%s): %s", code, msg), ex);
-        		case 13:
-        			return new ArangoDBGraphException(code, String.format("Checked ArangoDB storage error (%s): %s", code, msg), ex);
-        		case 14:
-        			return new ArangoDBGraphException(code, String.format("ArangoDB replication/cluster error (%s): %s", code, msg), ex);
-        		case 15:
-        			return new ArangoDBGraphException(code, String.format("ArangoDB query error (%s): %s", code, msg), ex);
-        		case 19:
-        			return new ArangoDBGraphException(code, String.format("Graph / traversal errors (%s): %s", code, msg), ex);
+                    case 10:	// Internal ArangoDB storage errors
+                        return new ArangoDBGraphException(code, String.format("Internal ArangoDB storage error (%s): %s", code, msg), ex);
+                    case 11:
+                        return new ArangoDBGraphException(code, String.format("External ArangoDB storage error (%s): %s", code, msg), ex);
+                    case 12:
+                        return new ArangoDBGraphException(code, String.format("General ArangoDB storage error (%s): %s", code, msg), ex);
+                    case 13:
+                        return new ArangoDBGraphException(code, String.format("Checked ArangoDB storage error (%s): %s", code, msg), ex);
+                    case 14:
+                        return new ArangoDBGraphException(code, String.format("ArangoDB replication/cluster error (%s): %s", code, msg), ex);
+                    case 15:
+                        return new ArangoDBGraphException(code, String.format("ArangoDB query error (%s): %s", code, msg), ex);
+                    case 19:
+                        return new ArangoDBGraphException(code, String.format("Graph / traversal errors (%s): %s", code, msg), ex);
+        			default:
+                        return new ArangoDBGraphException(String.format("General ArangoDB error (unkown error code - )", code), ex);
         		}
         	}
-        	return new ArangoDBGraphException("General ArangoDB error (unkown error code)", ex);
+        	return new ArangoDBGraphException(String.format("General ArangoDB error (unkown error code)", ex));
         }
 
         /** The name to long. */
@@ -160,7 +162,7 @@ public class ArangoDBGraphClient {
      * Create a simple graph client and connect to the provided db. If the DB does not exist,
      * the driver will try to create one
      *
-     * @param properties 				the ArangoDB configuration properties
+     * @param properties 				the ArangoDB configuration vertexProperties
      * @param dbname 					the ArangoDB name to connect to or create
      * @param batchSize					the size of the batch mode chunks
      * @throws ArangoDBGraphException 	If the db does not exist and cannot be created
@@ -178,7 +180,7 @@ public class ArangoDBGraphClient {
 	 * Create a simple graph client and connect to the provided db. If the DB does not exist,
 	 * the driver will try to create one
 	 *
-	 * @param properties 				the ArangoDB configuration properties
+	 * @param properties 				the ArangoDB configuration vertexProperties
 	 * @param dbname 					the ArangoDB name to connect to or create
 	 * @param batchSize					the size of the batch mode chunks
 	 * @param shouldPrefixCollectionWithGraphName					prepend the graph names to collections
@@ -198,7 +200,7 @@ public class ArangoDBGraphClient {
 	 * Create a simple graph client and connect to the provided db. The create flag controls what is the
 	 * behaviour if the db is not found
 	 *
-	 * @param properties 				the ArangoDB configuration properties
+	 * @param properties 				the ArangoDB configuration vertexProperties
 	 * @param dbname 					the ArangoDB name to connect to or create
 	 * @param batchSize					the size of the batch mode chunks
 	 * @param createDatabase			if true, the driver will attempt to crate the DB if it does not exist
@@ -218,11 +220,13 @@ public class ArangoDBGraphClient {
 		try {
 			properties.store(os, null);
 			InputStream targetStream = new ByteArrayInputStream(os.toByteArray());
+            ArangoDBVertexVPack vertexVpack = new ArangoDBVertexVPack();
 			driver = new ArangoDB.Builder().loadProperties(targetStream)
-					//.registerModule(new ArangoDBGraphModule())
+					.registerDeserializer(ArangoDBVertex.class, vertexVpack)
+			        .registerSerializer(ArangoDBVertex.class, vertexVpack)
 					.build();
 		} catch (IOException e) {
-			throw new ArangoDBGraphException("Unable to read properties", e);
+			throw new ArangoDBGraphException("Unable to read vertexProperties", e);
 		}
 		db = driver.db(dbname);
 		if (createDatabase) {
@@ -358,7 +362,7 @@ public class ArangoDBGraphClient {
 	
 	/**
 	 * Get a document from the database. The method is generic so we it can be used to retrieve
-	 * vertices, properties or variables.
+	 * vertices, vertexProperties or variables.
 	 *
 	 * @param <V> the value type
 	 * @param graph         			the graph
@@ -715,7 +719,7 @@ public class ArangoDBGraphClient {
 	}
 	
 	/**
-	 * Gets the element properties.
+	 * Gets the element vertexProperties.
 	 *
 	 * @param <T> 					the generic type
 	 * @param graphName 			the graph name

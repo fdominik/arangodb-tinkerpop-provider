@@ -23,11 +23,7 @@ import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationConverter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tinkerpop.gremlin.process.computer.GraphComputer;
-import org.apache.tinkerpop.gremlin.structure.Edge;
-import org.apache.tinkerpop.gremlin.structure.Element;
-import org.apache.tinkerpop.gremlin.structure.Graph;
-import org.apache.tinkerpop.gremlin.structure.Transaction;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.apache.tinkerpop.gremlin.structure.*;
 import org.apache.tinkerpop.gremlin.structure.util.ElementHelper;
 import org.apache.tinkerpop.gremlin.structure.util.StringFactory;
 import org.slf4j.Logger;
@@ -74,11 +70,11 @@ import com.arangodb.tinkerpop.gremlin.utils.ArangoDBUtil;
  * <pre>gremlin.arangodb.conf.graph.db = myDB
  * </pre>
  * <p>
- * To define the schema, (EdgeCollections in ArangoDB world) three properties can be used:
+ * To define the schema, (EdgeCollections in ArangoDB world) three vertexProperties can be used:
  * <tt>graph.vertex</tt>, <tt>graph.edge</tt> and <tt>graph.relation</tt>. The graph.vertex and
- * graph.edge properties allow definition of the ArangoDB collections used to store nodes and edges
+ * graph.edge vertexProperties allow definition of the ArangoDB collections used to store nodes and edges
  * respectively. The relations property is used to describe the allowed edge-node relations. For
- * simple graphs, only one graph.vertex and graph.edge properties need to be provided. In this case
+ * simple graphs, only one graph.vertex and graph.edge vertexProperties need to be provided. In this case
  * edges are allowed to connect to any two nodes. For example:
  * <pre>gremlin.arangodb.conf.graph.vertex = Place
  *gremlin.arangodb.conf.graph.edge = Transition
@@ -241,7 +237,7 @@ public class ArangoDBGraph implements Graph {
      * The Class ArangoDBGraphFeatures.
      */
 
-	public class ArangoDBGraphFeatures implements Features {
+	public static class ArangoDBGraphFeatures implements Features {
 
     	/**
          * The Class ArangoDBGraphGraphFeatures.
@@ -312,7 +308,7 @@ public class ArangoDBGraph implements Graph {
 				 *  the string representation of these is fine for ArangoDB, which makes the test
 				 *  complain because it expects the actual class to be deserialized. We can test
 				 *  to see if a string is accepted for deserialization.
-				 *  TODO As with properties, a way to support this is to store the id value class
+				 *  TODO As with vertexProperties, a way to support this is to store the id value class
 				 */
 				return false;
 			}
@@ -339,6 +335,7 @@ public class ArangoDBGraph implements Graph {
             public VertexPropertyFeatures properties() {
                 return vertexPropertyFeatures;
             }
+
         }
 
     	/**
@@ -395,7 +392,7 @@ public class ArangoDBGraph implements Graph {
 				 *  the string representation of these is fine for ArangoDB, which makes the test
 				 *  complain because it expects the actual class to be deserialized. We can test
 				 *  to see if a string is accepted for deserialization.
-				 *  TODO As with properties, a way to support this is to store the id value class
+				 *  TODO As with vertexProperties, a way to support this is to store the id value class
 				 */
 				return false;
 			}
@@ -450,31 +447,31 @@ public class ArangoDBGraph implements Graph {
 
 	private static final Logger logger = LoggerFactory.getLogger(ArangoDBGraph.class);
 
-    /** The properties key CONFIG_CONF. */
+    /** The vertexProperties key CONFIG_CONF. */
 
     public static final String PROPERTY_KEY_PREFIX = "gremlin.arangodb.conf";
 
-    /** The properties key  CONFIG_DB. */
+    /** The vertexProperties key  CONFIG_DB. */
 
     public static final String PROPERTY_KEY_DB_NAME = "graph.db";
 
-    /** The properties key  CONFIG_NAME. */
+    /** The vertexProperties key  CONFIG_NAME. */
 
     public static final String PROPERTY_KEY_GRAPH_NAME = "graph.name";
 
-    /** The properties key CONFIG_VERTICES. */
+    /** The vertexProperties key CONFIG_VERTICES. */
 
     public static final String PROPERTY_KEY_VERTICES = "graph.vertex";
 
-    /** The properties key CONFIG_EDGES. */
+    /** The vertexProperties key CONFIG_EDGES. */
 
     public static final String PROPERTY_KEY_EDGES = "graph.edge";
 
-    /** The properties key CONFIG_RELATIONS. */
+    /** The vertexProperties key CONFIG_RELATIONS. */
 
     public static final String PROPERTY_KEY_RELATIONS = "graph.relation";
 
-	/** The properties key CONFIG_SHOULD_PREFIX_COLLECTION_NAMES **/
+	/** The vertexProperties key CONFIG_SHOULD_PREFIX_COLLECTION_NAMES **/
 
 	public static final String PROPERTY_KEY_SHOULD_PREFIX_COLLECTION_NAMES = "arangodb.shouldPrefixCollectionNames";
 
@@ -488,7 +485,7 @@ public class ArangoDBGraph implements Graph {
 
 	/** The features. */
 
-	private final Features FEATURES = new ArangoDBGraphFeatures();
+	public static final Features FEATURES = new ArangoDBGraphFeatures();
 
 	/** A ArangoDBGraphClient to handle the connection to the Database. */
 
@@ -576,6 +573,7 @@ public class ArangoDBGraph implements Graph {
         GraphCreateOptions options = new  GraphCreateOptions();
         options.orphanCollections(ArangoDBUtil.getCollectioName(graphName, ArangoDBUtil.GRAPH_VARIABLES_COLLECTION, true)); // Graph Variables is a collection specific for given Graph.
         if (graph.exists()) {
+        	// FIXME More than shouldPrefixCollectionNames it should be useExistingGraph, so we can add missing required collections (e.g. graph vertexProperties)
     		this.name = graph.name();
             ArangoDBUtil.checkGraphForErrors(vertexCollections, edgeCollections, relations, graph, options, shouldPrefixCollectionNames);
             ArangoCursor<String> iter = client.getGraphVariablesId(this.name);
@@ -643,7 +641,7 @@ public class ArangoDBGraph implements Graph {
         else {
         	vertex = new ArangoDBVertex(this, collection);
         }
-        // The vertex needs to exist before we can attach properties
+        // The vertex needs to exist before we can attach vertexProperties
         client.insertDocument(vertex);
         ElementHelper.attachProperties(vertex, keyValues);
         return vertex;
@@ -795,6 +793,8 @@ public class ArangoDBGraph implements Graph {
 
 	@Override
 	public Iterator<Vertex> vertices(Object... vertexIds) {
+		// FIXME We need to cache or something what is in memory (i.e. from addVertex or a previous call to this mehtod)
+		// so we can modify in-memory vertices...
     	List<String> vertexCollections = new ArrayList<>();
     	List<String> ids = Arrays.stream(vertexIds)
         		.map(id -> {

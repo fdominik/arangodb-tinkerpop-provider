@@ -23,13 +23,6 @@ import com.arangodb.entity.GraphEntity;
 import com.arangodb.model.GraphCreateOptions;
 import com.arangodb.tinkerpop.gremlin.client.ArangoDBGraphClient;
 import com.arangodb.tinkerpop.gremlin.client.ArangoDBGraphException;
-import com.arangodb.tinkerpop.gremlin.structure.ArangoDBEdge;
-import com.arangodb.tinkerpop.gremlin.structure.ArangoDBEdgeProperty;
-import com.arangodb.tinkerpop.gremlin.structure.ArangoDBElementProperty.ElementHasProperty;
-import com.arangodb.tinkerpop.gremlin.structure.ArangoDBGraph;
-import com.arangodb.tinkerpop.gremlin.structure.ArangoDBPropertyProperty;
-import com.arangodb.tinkerpop.gremlin.structure.ArangoDBVertex;
-import com.arangodb.tinkerpop.gremlin.structure.ArangoDBVertexProperty;
 import com.arangodb.velocypack.VPack;
 import com.arangodb.velocypack.VPackSlice;
 import com.arangodb.velocypack.exception.VPackParserException;
@@ -50,7 +43,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This class provides utility methods for creating properties and for normalising property and
+ * This class provides utility methods for creating vertexProperties and for normalising property and
  * collections names (to satisfy Arango DB naming conventions.
  * 
  * @author Achim Brandt (http://www.triagens.de)
@@ -384,8 +377,8 @@ public class ArangoDBUtil {
 	}
 
     /**
-     * Create the graph private collections. There is a collection for storing graph properties.
-     * Both vertices and edges can have properties
+     * Create the graph private collections. There is a collection for storing graph vertexProperties.
+     * Both vertices and edges can have vertexProperties
      *
      * @param graphName the graph name
      * @param vertexCollections the vertex collections
@@ -413,95 +406,95 @@ public class ArangoDBUtil {
     }
 
 
-    /**
-     * Creates an Arango DB edge property.
-     *
-     * @param <U> 			the generic type
-     * @param key 			the key
-     * @param value 		the value
-     * @param edge 			the edge
-     * @return the created Arango DB edge property
-     */
-    
-    public static <U> ArangoDBEdgeProperty<U> createArangoDBEdgeProperty(
-    	String key,
-    	U value,
-    	ArangoDBEdge edge) {
-        ArangoDBEdgeProperty<U> p;
-        p = new ArangoDBEdgeProperty<>(key, value, edge);
-        ArangoDBGraph g = edge.graph();
-        ArangoDBGraphClient c = g.getClient();
-        c.insertDocument(p);
-        ElementHasProperty e = p.assignToElement(edge);
-        c.insertEdge(e);
-        return p;
-    }
+//    /**
+//     * Creates an Arango DB edge property.
+//     *
+//     * @param <U> 			the generic type
+//     * @param key 			the key
+//     * @param value 		the value
+//     * @param edge 			the edge
+//     * @return the created Arango DB edge property
+//     */
+//
+//    public static <U> ArangoDBEdgeProperty<U> createArangoDBEdgeProperty(
+//    	String key,
+//    	U value,
+//    	ArangoDBEdge edge) {
+//        ArangoDBEdgeProperty<U> p;
+//        p = new ArangoDBEdgeProperty<>(key, value, edge);
+//        ArangoDBGraph g = edge.graph();
+//        ArangoDBGraphClient c = g.getClient();
+//        c.insertDocument(p);
+//        ElementHasProperty e = p.assignToElement(edge);
+//        c.insertEdge(e);
+//        return p;
+//    }
 
-    /**
-     * Creates an Arango DB vertex property.
-     *
-     * @param <U> 			the generic type
-     * @param key 			the key
-     * @param value 		the value
-     * @param vertex 		the vertex
-     * @return the created Arango DB vertex property
-     */
-    
-    public static <U> ArangoDBVertexProperty<U> createArangoDBVertexProperty(String key, U value, ArangoDBVertex vertex) {
-        ArangoDBVertexProperty<U> p;
-        p = new ArangoDBVertexProperty<>(key, value, vertex);
-        ArangoDBGraph g = vertex.graph();
-        ArangoDBGraphClient c = g.getClient();
-        c.insertDocument(p);
-        ElementHasProperty e = p.assignToElement(vertex);
-        c.insertEdge(e);
-        return p;
-    }
+//    /**
+//     * Creates an Arango DB vertex property.
+//     *
+//     * @param <U> 			the generic type
+//     * @param key 			the key
+//     * @param value 		the value
+//     * @param vertex 		the vertex
+//     * @return the created Arango DB vertex property
+//     */
+//
+//    public static <U> ArangoDBVertexProperty<U> createArangoDBVertexProperty(String key, U value, ArangoDBVertex vertex) {
+//        ArangoDBVertexProperty<U> p;
+//        p = new ArangoDBVertexProperty<>(key, value, vertex);
+//        ArangoDBGraph g = vertex.graph();
+//        ArangoDBGraphClient c = g.getClient();
+//        c.insertDocument(p);
+//        ElementHasProperty e = p.assignToElement(vertex);
+//        c.insertEdge(e);
+//        return p;
+//    }
 
-    /**
-     * Creates an Arango DB vertex property.
-     *
-     * @param <U> 			the generic type
-     * @param id 			the id
-     * @param key 			the key
-     * @param value 		the value
-     * @param vertex 		the vertex
-     * @return the created Arango DB vertex property
-     */
-    
-    public static <U> ArangoDBVertexProperty<U> createArangoDBVertexProperty(String id, String key, U value, ArangoDBVertex vertex) {
-        ArangoDBVertexProperty<U> p;
-        p = new ArangoDBVertexProperty<>(id, key, value, vertex);
-        ArangoDBGraph g = vertex.graph();
-        ArangoDBGraphClient c = g.getClient();
-				//This is insertion of a property to ELEMENT-PROPERTIES collection, which must be always prefixed with graph name
-				c.insertDocument(p, true);
-        ElementHasProperty e = p.assignToElement(vertex);
-        //This is insertion of edge to ELEMENT-HAS-PROPERTIES collection, between ArangoBaseDocument and Property
-        c.insertEdge(e, true);
-        return p;
-    }
+//    /**
+//     * Creates an Arango DB vertex property.
+//     *
+//     * @param <U> 			the generic type
+//     * @param id 			the id
+//     * @param key 			the key
+//     * @param value 		the value
+//     * @param vertex 		the vertex
+//     * @return the created Arango DB vertex property
+//     */
+//
+//    public static <U> ArangoDBVertexProperty<U> createArangoDBVertexProperty(String id, String key, U value, ArangoDBVertex vertex) {
+//        ArangoDBVertexProperty<U> p;
+//        p = new ArangoDBVertexProperty<>(id, key, value, vertex);
+//        ArangoDBGraph g = vertex.graph();
+//        ArangoDBGraphClient c = g.getClient();
+//				//This is insertion of a property to ELEMENT-PROPERTIES collection, which must be always prefixed with graph name
+//				c.insertDocument(p, true);
+//        ElementHasProperty e = p.assignToElement(vertex);
+//        //This is insertion of edge to ELEMENT-HAS-PROPERTIES collection, between ArangoBaseDocument and Property
+//        c.insertEdge(e, true);
+//        return p;
+//    }
 
-    /**
-     * Creates an Arango DB property property.
-     *
-     * @param <U> 				the generic type
-     * @param key 				the key
-     * @param value 			the value
-     * @param vertexProperty	the vertex property
-     * @return the created Arango DB property property
-     */
-    
-    public static <U> ArangoDBPropertyProperty<U> createArangoDBPropertyProperty(String key, U value, ArangoDBVertexProperty<?> vertexProperty) {
-        ArangoDBPropertyProperty<U> p;
-        p = new ArangoDBPropertyProperty<>(key, value, vertexProperty);
-        ArangoDBGraph g = vertexProperty.graph();
-        ArangoDBGraphClient c = g.getClient();
-        c.insertDocument(p);
-        ElementHasProperty e = p.assignToElement(vertexProperty);
-        c.insertEdge(e);
-        return p;
-    }
+//    /**
+//     * Creates an Arango DB property property.
+//     *
+//     * @param <U> 				the generic type
+//     * @param key 				the key
+//     * @param value 			the value
+//     * @param vertexProperty	the vertex property
+//     * @return the created Arango DB property property
+//     */
+//
+//    public static <U> ArangoDBPropertyProperty<U> createArangoDBPropertyProperty(String key, U value, ArangoDBVertexProperty<?> vertexProperty) {
+//        ArangoDBPropertyProperty<U> p;
+//        p = new ArangoDBPropertyProperty<>(key, value, vertexProperty);
+//        ArangoDBGraph g = vertexProperty.graph();
+//        ArangoDBGraphClient c = g.getClient();
+//        c.insertDocument(p);
+//        ElementHasProperty e = p.assignToElement(vertexProperty);
+//        c.insertEdge(e);
+//        return p;
+//    }
 
     /**
      * Gets the correct primitive.

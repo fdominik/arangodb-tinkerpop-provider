@@ -14,7 +14,6 @@ import org.apache.tinkerpop.gremlin.structure.Element;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 
 import com.arangodb.tinkerpop.gremlin.client.ArangoDBGraphClient;
-import com.arangodb.tinkerpop.gremlin.structure.AbstractArangoDBElement;
 import com.arangodb.tinkerpop.gremlin.structure.ArangoDBEdge;
 import com.arangodb.tinkerpop.gremlin.structure.ArangoDBElementProperty;
 import com.arangodb.tinkerpop.gremlin.structure.ArangoDBGraph;
@@ -34,7 +33,6 @@ public class ArangoDBGraphProvider extends AbstractGraphProvider {
 	/** The Constant IMPLEMENTATIONS. */
 	private static final Set<Class> IMPLEMENTATIONS = new HashSet<Class>() {{
         add(ArangoDBEdge.class);
-        add(AbstractArangoDBElement.class);
         add(ArangoDBGraph.class);
         add(ArangoDBGraphVariables.class);
         add(ArangoDBElementProperty.class);
@@ -52,6 +50,8 @@ public class ArangoDBGraphProvider extends AbstractGraphProvider {
 
         // assign overrides but don't allow gremlin.graph setting to be overridden.  the test suite should
         // not be able to override that.
+		System.out.println(String.format("ArangoDBGraphTest %s: %s", test.getSimpleName(), testMethodName));
+		System.out.println(String.format("ArangoDBGraphTest %s: %s", test.getSimpleName(), testMethodName));
         configurationOverrides.entrySet().stream()
                 .filter(c -> !c.getKey().equals(Graph.GRAPH))
                 .forEach(e -> conf.setProperty(e.getKey(), e.getValue()));
@@ -139,69 +139,91 @@ public class ArangoDBGraphProvider extends AbstractGraphProvider {
 			else if(testMethodName.startsWith("shouldReadWriteDetachedVertexNoEdges")) {
 				builder.withEdgeCollection("friends");
 			}
+            else if(testMethodName.startsWith("shouldReadWriteDetachedEdge")) {
+                builder.withEdgeCollection("friend");
+            }
+            else if(testMethodName.startsWith("shouldReadWriteEdge")) {
+                builder.withEdgeCollection("friend");
+            }
 			else {
 				// Perhaps change for startsWith, but then it would be more verbose. Perhaps a set?
 				switch (testMethodName) {
-				case "shouldGetPropertyKeysOnEdge":
-				case "shouldNotGetConcurrentModificationException":
-					builder.withEdgeCollection("friend");
-					break;
-				case "shouldTraverseInOutFromVertexWithMultipleEdgeLabelFilter":
-				case "shouldTraverseInOutFromVertexWithSingleEdgeLabelFilter":
-					builder.withEdgeCollection("hate");
-					builder.withEdgeCollection("friend");
-					break;
-				case "shouldPersistDataOnClose":
-					builder.withEdgeCollection("collaborator");
-					break;
-				case "shouldTestTreeConnectivity":
-					builder.withEdgeCollection("test1");
-					builder.withEdgeCollection("test2");
-					builder.withEdgeCollection("test3");
-					break;
-				case "shouldEvaluateConnectivityPatterns":
-					builder.withEdgeCollection("knows");
-					builder.withEdgeCollection("knows");
-					break;
-				case "shouldRemoveEdgesWithoutConcurrentModificationException":
-					builder.withEdgeCollection("link");
-					break;
-				case "shouldGetValueThatIsNotPresentOnEdge":
-				case "shouldHaveStandardStringRepresentationForEdgeProperty":
-				case "shouldHaveTruncatedStringRepresentationForEdgeProperty":
-				case "shouldValidateIdEquality":
-				case "shouldValidateEquality":
-					builder.withEdgeCollection("self");
-					break;
-				case "shouldAllowRemovalFromEdgeWhenAlreadyRemoved":
-				case "shouldRespectWhatAreEdgesAndWhatArePropertiesInMultiProperties":
-				case "shouldProcessEdges":	
-				case "shouldReturnOutThenInOnVertexIterator":
-				case "shouldReturnEmptyIteratorIfNoProperties":
-					builder.withEdgeCollection("knows");
-					break;
-				case "shouldNotHaveAConcurrentModificationExceptionWhenIteratingAndRemovingAddingEdges":
-					builder.withEdgeCollection("knows");
-					builder.withEdgeCollection("pets");
-					builder.withEdgeCollection("walks");
-					builder.withEdgeCollection("livesWith");
-					break;
-				case "shouldHaveStandardStringRepresentation":
-					builder.withEdgeCollection("friends");
-					break;
-				case "shouldReadWriteSelfLoopingEdges":
-					builder.withEdgeCollection("CONTROL");
-					builder.withEdgeCollection("SELFLOOP");
-					break;
-				case "shouldReadGraphML":
-				case "shouldReadGraphMLUnorderedElements":
-				case "shouldTransformGraphMLV2ToV3ViaXSLT":
-				case "shouldReadLegacyGraphSON":
-					builder.withEdgeCollection("knows");
-					builder.withEdgeCollection("created");
-					break;
+                    case "shouldGetPropertyKeysOnEdge":
+                    case "shouldNotGetConcurrentModificationException":
+                        builder.withEdgeCollection("friend");
+                        break;
+                    case "shouldTraverseInOutFromVertexWithMultipleEdgeLabelFilter":
+                    case "shouldTraverseInOutFromVertexWithSingleEdgeLabelFilter":
+                        builder.withEdgeCollection("hate");
+                        builder.withEdgeCollection("friend");
+                        break;
+                    case "shouldPersistDataOnClose":
+                        builder.withEdgeCollection("collaborator");
+                        break;
+                    case "shouldTestTreeConnectivity":
+                        builder.withEdgeCollection("test1");
+                        builder.withEdgeCollection("test2");
+                        builder.withEdgeCollection("test3");
+                        break;
+                    case "shouldEvaluateConnectivityPatterns":
+                        builder.withEdgeCollection("knows");
+                        builder.withEdgeCollection("knows");
+                        break;
+                    case "shouldRemoveEdgesWithoutConcurrentModificationException":
+                        builder.withEdgeCollection("link");
+                        break;
+                    case "shouldGetValueThatIsNotPresentOnEdge":
+                    case "shouldHaveStandardStringRepresentationForEdgeProperty":
+                    case "shouldHaveTruncatedStringRepresentationForEdgeProperty":
+                    case "shouldValidateIdEquality":
+                    case "shouldValidateEquality":
+                    case "shouldHandleSelfLoops":
+                        builder.withEdgeCollection("self");
+                        break;
+                    case "shouldAllowRemovalFromEdgeWhenAlreadyRemoved":
+                    case "shouldRespectWhatAreEdgesAndWhatArePropertiesInMultiProperties":
+                    case "shouldProcessEdges":
+                    case "shouldReturnOutThenInOnVertexIterator":
+                    case "shouldReturnEmptyIteratorIfNoProperties":
+                        builder.withEdgeCollection("knows");
+                        break;
+                    case "shouldNotHaveAConcurrentModificationExceptionWhenIteratingAndRemovingAddingEdges":
+                        builder.withEdgeCollection("knows");
+                        builder.withEdgeCollection("pets");
+                        builder.withEdgeCollection("walks");
+                        builder.withEdgeCollection("livesWith");
+                        break;
+                    case "shouldHaveStandardStringRepresentation":
+                        builder.withEdgeCollection("friends");
+                        break;
+                    case "shouldReadWriteSelfLoopingEdges":
+                        builder.withEdgeCollection("CONTROL");
+                        builder.withEdgeCollection("SELFLOOP");
+                        break;
+                    case "shouldReadGraphML":
+                    case "shouldReadGraphMLUnorderedElements":
+                    case "shouldTransformGraphMLV2ToV3ViaXSLT":
+                    case "shouldReadLegacyGraphSON":
+                        builder.withEdgeCollection("knows");
+                        builder.withEdgeCollection("created");
+                        break;
+                    case "shouldNotAllowSetProperty":
+                    case "shouldHashAndEqualCorrectly":
+                    case "shouldNotAllowRemove":
+                    case "shouldNotConstructNewWithSomethingAlreadyDetached":
+                    case "shouldNotConstructNewWithSomethingAlreadyReferenced":
+                        builder.withEdgeCollection("test");
+                        break;
+                    case "shouldCreateVertex":
+                        builder.withVertexCollection("dog");
+                        break;
+                    case "shouldAttachWithCreateMethod":
+                        builder.withEdgeCollection("developedBy");
+                        builder.withEdgeCollection("knows");
+                        break;
+
 				default:
-					System.out.println("case \"" + testMethodName + "\":");
+				    System.out.println(String.format("case \"%s\":\n\tbreak;", testMethodName));
 				}
 			}
 		}
