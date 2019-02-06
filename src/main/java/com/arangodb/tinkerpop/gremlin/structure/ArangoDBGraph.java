@@ -8,27 +8,6 @@
 
 package com.arangodb.tinkerpop.gremlin.structure;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Properties;
-import java.util.regex.Matcher;
-import java.util.stream.Collectors;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.ConfigurationConverter;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.tinkerpop.gremlin.process.computer.GraphComputer;
-import org.apache.tinkerpop.gremlin.structure.*;
-import org.apache.tinkerpop.gremlin.structure.util.ElementHelper;
-import org.apache.tinkerpop.gremlin.structure.util.StringFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.arangodb.ArangoCursor;
 import com.arangodb.ArangoGraph;
 import com.arangodb.model.GraphCreateOptions;
@@ -36,6 +15,31 @@ import com.arangodb.tinkerpop.gremlin.client.ArangoDBGraphClient;
 import com.arangodb.tinkerpop.gremlin.client.ArangoDBGraphException;
 import com.arangodb.tinkerpop.gremlin.client.ArangoDBIterator;
 import com.arangodb.tinkerpop.gremlin.utils.ArangoDBUtil;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.stream.Collectors;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.ConfigurationConverter;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.tinkerpop.gremlin.process.computer.GraphComputer;
+import org.apache.tinkerpop.gremlin.structure.Edge;
+import org.apache.tinkerpop.gremlin.structure.Element;
+import org.apache.tinkerpop.gremlin.structure.Graph;
+import org.apache.tinkerpop.gremlin.structure.Transaction;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.apache.tinkerpop.gremlin.structure.util.ElementHelper;
+import org.apache.tinkerpop.gremlin.structure.util.StringFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The ArangoDB graph class.
@@ -791,14 +795,45 @@ public class ArangoDBGraph implements Graph {
 		return Collections.unmodifiableList(vertexCollections);
 	}
 
+	/**
+	 * Return all the keys currently being index for said element class  ({@link Vertex} or {@link Edge}).
+	 *
+	 * @param elementClass the element class to get the indexed keys for
+	 * @param <E>          The type of the element class
+	 * @return the set of keys currently being indexed
+	 */
+	public <E extends Element> Set<String> getIndexedKeys(final Class<E> elementClass) {
+		if (Vertex.class.isAssignableFrom(elementClass)) {
+			if(this.vertexCollections == null || this.vertexCollections.size()==0){
+				return Collections.emptySet();
+			}else {
+				Set<String> lSet = new HashSet<>(this.vertexCollections);
+				lSet.addAll(lSet);
+				return lSet;
+			}
+		} else if (Edge.class.isAssignableFrom(elementClass)) {
+			if(this.edgeCollections == null || this.edgeCollections.size()==0){
+				return Collections.emptySet();
+			}else {
+				Set<String> lSet = new HashSet<>(this.edgeCollections);
+				lSet.addAll(lSet);
+				return lSet;
+			}
+		} else {
+			throw new IllegalArgumentException("Class is not indexable: " + elementClass);
+		}
+	}
+
 	@Override
 	public Iterator<Vertex> vertices(Object... vertexIds) {
 		// FIXME We need to cache or something what is in memory (i.e. from addVertex or a previous call to this mehtod)
 		// so we can modify in-memory vertices...
+			logger.debug("Total of {} vertices IDs passed to get vertex objects.", vertexIds.length);
     	List<String> vertexCollections = new ArrayList<>();
     	List<String> ids = Arrays.stream(vertexIds)
         		.map(id -> {
         			if (id instanceof Vertex) {
+								logger.trace("Getting Vertex label to be added to VertexCollection.");
         				vertexCollections.add(((Vertex)id).label());
         				return ((Vertex)id).id();
         			}
